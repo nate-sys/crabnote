@@ -39,6 +39,7 @@ fn main() {
                     }
                 }
             }
+            Key::Ctrl('s') => p.save(),
             _ => break,
         }
         p.draw(current_index, &mut stdout);

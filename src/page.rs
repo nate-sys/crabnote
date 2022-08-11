@@ -1,5 +1,7 @@
+use std::fs::File;
 use std::io::{Stdout, Write};
 use termion::{color, cursor, style};
+
 pub struct Page {
     pub components: Vec<String>,
 }
@@ -17,7 +19,7 @@ impl Page {
                     stdout,
                     "{bg}{fg}{bolden}",
                     bg = color::Bg(color::Red),
-                    fg = color::Fg(color::LightWhite),
+                    fg = color::Fg(color::Black),
                     bolden = style::Bold,
                 )
                 .unwrap();
@@ -30,13 +32,18 @@ impl Page {
                     stdout,
                     "{bg}{fg}{bolden}",
                     bg = color::Bg(color::Blue),
-                    fg = color::Fg(color::LightWhite),
+                    fg = color::Fg(color::Black),
                     bolden = style::Bold,
                 )
                 .unwrap();
                 text = String::from(s);
                 text = text.replacen("## ", " ", 1);
                 text.push_str(" ");
+            }
+            s if s.starts_with("* ") => {
+                write!(stdout, "{fg}", fg = color::Fg(color::White),).unwrap();
+                text = String::from(s);
+                text = text.replacen("* ", "  • ", 1);
             }
             _ => {
                 write!(
@@ -61,5 +68,11 @@ impl Page {
         )
         .unwrap();
         stdout.flush().unwrap();
+    }
+    pub fn save(&self) {
+        let data = self.components.join("\n");
+
+        let mut f = File::create("./note.md").unwrap();
+        f.write_all(data.as_bytes()).unwrap();
     }
 }
