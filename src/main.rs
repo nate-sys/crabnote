@@ -9,13 +9,14 @@ fn main() {
     stdout.flush().unwrap();
 
     let mut p = Page {
-        components: vec![String::new()],
+        components: Vec::new(),
     };
+    p.read();
     for (i, _) in p.components.iter().enumerate() {
         p.draw(i, &mut stdout);
     }
 
-    let mut current_index = 0;
+    let mut current_index = p.components.len() - 1;
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char(c) => {

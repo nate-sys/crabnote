@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Stdout, Write};
+use std::io::{BufRead, BufReader, Stdout, Write};
 use termion::{color, cursor, style};
 
 pub struct Page {
@@ -18,7 +18,7 @@ impl Page {
                 write!(
                     stdout,
                     "{bg}{fg}{bolden}",
-                    bg = color::Bg(color::Red),
+                    bg = color::Bg(color::Green),
                     fg = color::Fg(color::Black),
                     bolden = style::Bold,
                 )
@@ -31,26 +31,43 @@ impl Page {
                 write!(
                     stdout,
                     "{bg}{fg}{bolden}",
-                    bg = color::Bg(color::Blue),
-                    fg = color::Fg(color::Black),
+                    bg = color::Bg(color::Reset),
+                    fg = color::Fg(color::Green),
                     bolden = style::Bold,
                 )
                 .unwrap();
                 text = String::from(s);
-                text = text.replacen("## ", " ", 1);
+                text = text.replacen("## ", "", 1);
+                text.push_str(" ");
+            }
+            s if s.starts_with("### ") => {
+                write!(
+                    stdout,
+                    "{bg}{fg}",
+                    bg = color::Bg(color::Reset),
+                    fg = color::Fg(color::Green),
+                )
+                .unwrap();
+                text = String::from(s);
+                text = text.replacen("### ", "", 1);
                 text.push_str(" ");
             }
             s if s.starts_with("* ") => {
-                write!(stdout, "{fg}", fg = color::Fg(color::White),).unwrap();
+                write!(stdout, "{fg}", fg = color::Fg(color::Reset),).unwrap();
                 text = String::from(s);
                 text = text.replacen("* ", "  • ", 1);
+            }
+            s if s.starts_with("- ") => {
+                write!(stdout, "{fg}", fg = color::Fg(color::Reset),).unwrap();
+                text = String::from(s);
+                text = text.replacen("- ", "  ◦ ", 1);
             }
             _ => {
                 write!(
                     stdout,
                     "{bg}{fg}",
-                    bg = color::Bg(color::Black),
-                    fg = color::Fg(color::White)
+                    bg = color::Bg(color::Reset),
+                    fg = color::Fg(color::Reset)
                 )
                 .unwrap();
                 text = String::from(c);
@@ -69,10 +86,18 @@ impl Page {
         .unwrap();
         stdout.flush().unwrap();
     }
+    pub fn read(&mut self) {
+        let file = File::open("./note.md").expect("unable to open file");
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            let l = line.expect("unable to read line");
+            self.components.push(l);
+        }
+    }
     pub fn save(&self) {
         let data = self.components.join("\n");
-
-        let mut f = File::create("./note.md").unwrap();
-        f.write_all(data.as_bytes()).unwrap();
+        if let Ok(mut f) = File::create("./note.md") {
+            f.write_all(data.as_bytes()).unwrap();
+        }
     }
 }
