@@ -1,57 +1,33 @@
+mod component;
+mod container;
+mod item;
 use std::io::{stdin, stdout, Write};
 use termion::{event::Key, input::TermRead, raw::IntoRawMode, screen::*};
-mod page;
-use page::Page;
 fn main() {
-    //init
     let stdin = stdin();
     let mut stdout = AlternateScreen::from(stdout().into_raw_mode().unwrap());
-    stdout.flush().unwrap();
-
-    let mut p = Page {
-        components: Vec::new(),
-    };
-    p.read();
-    for (i, _) in p.components.iter().enumerate() {
-        p.draw(i, &mut stdout);
-    }
-
-    let mut current_index = p.components.len() - 1;
+    let mut item_list = container::Container::new();
+    write!(stdout, "{}", ToAlternateScreen).unwrap();
     for c in stdin.keys() {
-        match c.unwrap() {
-            Key::Char(c) => {
-                if c != '\n' {
-                    if let Some(current_line) = p.components.iter_mut().nth(current_index) {
-                        current_line.push(c);
-                    }
-                } else {
-                    p.new_line();
-                    current_index += 1;
-                }
+        if item_list.inserting {
+            match c.unwrap() {
+                Key::Esc => item_list.inserting = false,
+                _ => {}
             }
-            Key::Backspace => {
-                if let Some(current_line) = p.components.iter_mut().nth(current_index) {
-                    if let Some(_) = current_line.pop() {
-                        write!(stdout, "{}", termion::clear::CurrentLine).unwrap();
-                    } else {
-                        if current_index > 0 {
-                            current_index -= 1;
-                        }
-                    }
-                }
+        } else {
+            match c.unwrap() {
+                Key::Char('q') => break,
+                Key::Char('i') => item_list.inserting = true,
+                Key::Char('a') => item_list.add_item(item::Item::new_at_y(
+                    (item_list.length() + 1).try_into().unwrap_or(0),
+                )),
+                _ => {}
             }
-            Key::Ctrl('s') => p.save(),
-            _ => break,
         }
-        p.draw(current_index, &mut stdout);
+        write!(stdout, "{}", termion::clear::All).unwrap();
+        item_list.draw_to_buffer(&mut stdout);
+        stdout.flush().unwrap();
     }
-    //try to reset on exit
-    write!(
-        stdout,
-        "{}{}{}",
-        termion::cursor::Goto(1, 1),
-        termion::clear::All,
-        termion::cursor::Show,
-    )
-    .unwrap();
+    write!(stdout, "{}", ToMainScreen).unwrap();
+    stdout.flush().unwrap();
 }
