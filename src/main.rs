@@ -2,12 +2,18 @@ mod component;
 mod container;
 mod item;
 use std::io::{stdin, stdout, Write};
-use termion::{event::Key, input::TermRead, raw::IntoRawMode, screen::*};
+use termion::{cursor, event::Key, input::TermRead, raw::IntoRawMode, screen::*};
 fn main() {
     let stdin = stdin();
     let mut stdout = AlternateScreen::from(stdout().into_raw_mode().unwrap());
     let mut item_list = container::Container::new();
-    write!(stdout, "{}", ToAlternateScreen).unwrap();
+    write!(
+        stdout,
+        "{toAlt}{hideCursor}",
+        toAlt = ToAlternateScreen,
+        hideCursor = cursor::Hide
+    )
+    .unwrap();
     for c in stdin.keys() {
         if item_list.inserting {
             match c.unwrap() {
@@ -21,6 +27,9 @@ fn main() {
                 Key::Char('a') => item_list.add_item(item::Item::new_at_y(
                     (item_list.length() + 1).try_into().unwrap_or(0),
                 )),
+                Key::Char('d') => item_list.remove_item(),
+                Key::Char('j') => item_list.go(1),
+                Key::Char('k') => item_list.go(-1),
                 _ => {}
             }
         }
@@ -28,6 +37,12 @@ fn main() {
         item_list.draw_to_buffer(&mut stdout);
         stdout.flush().unwrap();
     }
-    write!(stdout, "{}", ToMainScreen).unwrap();
+    write!(
+        stdout,
+        "{toMain}{cursorShow}",
+        toMain = ToMainScreen,
+        cursorShow = cursor::Show
+    )
+    .unwrap();
     stdout.flush().unwrap();
 }
