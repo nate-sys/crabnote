@@ -21,11 +21,17 @@ impl Container {
     pub fn length(&self) -> usize {
         self.items.len()
     }
-    pub fn add_item(&mut self, i: Item) {
-        self.items.push(i);
+    pub fn add_item(&mut self) {
+        self.items.push(Item::new_at_y(
+            (self.current_index + 1).try_into().unwrap_or(0),
+        ));
     }
     pub fn remove_item(&mut self) {
         self.items.remove(self.current_index.try_into().unwrap());
+        self.items
+            .iter_mut()
+            .enumerate()
+            .for_each(|(ind, mut item)| item.position.1 = ind.try_into().unwrap_or(0));
     }
     pub fn go(&mut self, i: isize) {
         self.current_index += i;

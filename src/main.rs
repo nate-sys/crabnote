@@ -24,9 +24,7 @@ fn main() {
             match c.unwrap() {
                 Key::Char('q') => break,
                 Key::Char('i') => item_list.inserting = true,
-                Key::Char('a') => item_list.add_item(item::Item::new_at_y(
-                    (item_list.length() + 1).try_into().unwrap_or(0),
-                )),
+                Key::Char('a') => item_list.add_item(),
                 Key::Char('d') => item_list.remove_item(),
                 Key::Char('j') => item_list.go(1),
                 Key::Char('k') => item_list.go(-1),
