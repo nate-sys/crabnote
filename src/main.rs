@@ -16,9 +16,8 @@ fn main() {
     .unwrap();
     for c in stdin.keys() {
         if item_list.inserting {
-            match c.unwrap() {
-                Key::Esc => item_list.inserting = false,
-                _ => {}
+            if c.unwrap() == Key::Esc {
+                item_list.inserting = false
             }
         } else {
             match c.unwrap() {
