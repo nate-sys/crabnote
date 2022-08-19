@@ -2,14 +2,12 @@ use crate::item::Item;
 use std::io::{Stdout, Write};
 use termion::{cursor, style, event::Key};
 
-#[allow(dead_code)]
 pub struct Container {
     pub items: Vec<Item>,
     pub inserting: bool,
     current_index: isize,
 }
 
-#[allow(dead_code)]
 impl Container {
     pub fn new() -> Self {
         Container {
@@ -24,7 +22,7 @@ impl Container {
     fn rearrange_items(&mut self) {
         let mut iter = self.items.iter_mut();
         if let Some(first) = iter.next(){
-            first.position.1 =  1;
+            first.position.1 = 1;
             let mut previous = first;
             while let Some(current) = iter.next(){
                 current.position.1 = previous.position.1  + previous.lines; 
@@ -33,21 +31,22 @@ impl Container {
         }
     }
     pub fn add_item(&mut self) {
-        self.items.push(Item::new_at_y(
-            (self.current_index + 1).try_into().unwrap_or(1),
-        ));
-        self.go(1);
+        if self.items.is_empty() || self.current_index == self.length()-1 {
+            self.items.push(Item::new((self.current_index + 1).try_into().unwrap_or(1)));
+        }else{
+            self.items.insert(self.current_index.try_into().unwrap_or(0)+1, Item::new(
+                (self.current_index + 1).try_into().unwrap_or(1),
+            ));
+        }
+        //self.go(1);
         self.rearrange_items();
     }
     pub fn remove_item(&mut self) {
         if !self.items.is_empty() {
             self.items.remove(self.current_index.try_into().unwrap());
             self.current_index = self.current_index.min(self.length()-1).max(0);
-        }else{
-            self.current_index = 0;
-        }
-        
-         self.rearrange_items();
+        }else{ self.current_index = 0; }
+        self.rearrange_items();
     }
     pub fn go(&mut self, i: isize) {
         self.current_index += i;
@@ -64,24 +63,28 @@ impl Container {
             item.handle(key);
         }
     }
-    pub fn draw_to_buffer(&self, stdout: &mut Stdout) {
-        for (index, i) in self.items.iter().enumerate() {
+    pub fn draw_to_buffer(&mut self, stdout: &mut Stdout) {
+        for (index, i) in self.items.iter_mut().enumerate() {
             if index == self.current_index.try_into().unwrap() && !self.inserting {
                 write!(stdout, "{invert}", invert = style::Invert).unwrap();
             } else {
                 write!(stdout, "{noInvert}", noInvert = style::NoInvert).unwrap();
             }
+            let c = i.parse_md();
             write!(
                 stdout,
-                "{position}{text}",
+                "{position}{style}{text}",
                 position = cursor::Goto(i.position.0, i.position.1),
-                text = i.content
+                style= c.1,
+                text = c.0,
             )
             .unwrap();
+        }
+        if !self.items.is_empty(){
             write!(
                 stdout,
                 "{}",
-                cursor::Goto((self.get_current_item().cursor_position +1).try_into().unwrap_or_default(), self.get_current_item().position.1)
+                cursor::Goto((self.get_current_item().adjusted_cursor_position).try_into().unwrap_or_default(), self.get_current_item().position.1)
             )
             .unwrap();
         }

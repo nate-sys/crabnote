@@ -1,27 +1,28 @@
 use crate::component::Component;
-use termion::event::Key;
+use termion::{event::Key, color};
 #[allow(dead_code)]
-#[derive(Clone)]
 pub struct Item {
     component: Component,
     pub content: String,
     pub position: (u16, u16),
     pub lines: u16,
-    pub cursor_position: usize,
+    cursor_position: usize,
+    adjustment: i32,
+    pub adjusted_cursor_position: usize,
 }
 
-impl Default for Item {
-    fn default() -> Self {
+impl Item {
+    pub fn new(y: u16) -> Self {
         Item {
             component: Component::default(),
             content: String::from("Hello"),
-            position: (1, 1),
-            lines: 2,
+            position: (1, y),
+            lines: 1,
             cursor_position: 5,
+            adjustment: 1,
+            adjusted_cursor_position: 0,
         }
     }
-}
-impl Item {
     fn go_left(&mut self){
         if self.cursor_position > 0 {
             self.cursor_position -= 1;
@@ -49,13 +50,35 @@ impl Item {
             _ => {}
         }
     }
-    pub fn new_at_y(y: u16) -> Self {
-        Item {
-            component: Component::default(),
-            content: String::from("Hello"),
-            position: (1, y),
-            lines: 2,
-            cursor_position: 5,
+    pub fn parse_md(&mut self) -> (String, String) {
+        let parsed_text: String;
+        let formated_text: String;
+        if self.content.starts_with("# ") {
+            parsed_text = self.content.replace("# ", "");
+            self.adjustment = -1;
+            formated_text = format!("{}", color::Fg(color::Green));
         }
+        else if self.content.starts_with("## ") {
+            parsed_text = self.content.replace("## ", "");
+            self.adjustment = -2;
+            formated_text = format!("{}", color::Fg(color::Yellow));
+        }
+        else if self.content.starts_with("### ") {
+            parsed_text = self.content.replace("### ", "");
+            self.adjustment = -3;
+            formated_text = format!("{}", color::Fg(color::Red));
+        }
+        else if self.content.starts_with("- ") {
+            parsed_text = self.content.replace("- ", "    • ");
+            self.adjustment = 5;
+            formated_text = format!("{}", color::Fg(color::Reset));
+        }else{
+            formated_text = format!("{}", color::Fg(color::Reset));
+            parsed_text = self.content.clone();
+            self.adjustment = 1;
+        }
+
+        self.adjusted_cursor_position = (self.cursor_position as i32 + self.adjustment).try_into().unwrap_or(0);
+        return (parsed_text, formated_text)
     }
 }

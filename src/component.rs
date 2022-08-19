@@ -1,5 +1,5 @@
-#[allow(dead_code)]
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum Component {
     BoxListFull,
     BoxListHollow,

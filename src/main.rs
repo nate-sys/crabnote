@@ -12,8 +12,7 @@ fn main() {
         "{toAlt}{hideCursor}",
         toAlt = ToAlternateScreen,
         hideCursor = cursor::Hide
-    )
-    .unwrap();
+    ).unwrap();
     for c in stdin.keys() {
         if item_list.inserting {
             if c.as_ref().unwrap() == &Key::Esc {
@@ -46,7 +45,6 @@ fn main() {
         "{toMain}{cursorShow}",
         toMain = ToMainScreen,
         cursorShow = cursor::Show
-    )
-    .unwrap();
+    ).unwrap();
     stdout.flush().unwrap();
 }
