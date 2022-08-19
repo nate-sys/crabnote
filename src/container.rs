@@ -24,10 +24,11 @@ impl Container {
     fn rearrange_items(&mut self) {
         let mut iter = self.items.iter_mut();
         if let Some(first) = iter.next(){
-            let mut prev = first;
-            while let Some(elem) = iter.next(){
-                elem.position.1 = prev.position.1  + prev.lines; 
-                prev = elem;
+            first.position.1 =  1;
+            let mut previous = first;
+            while let Some(current) = iter.next(){
+                current.position.1 = previous.position.1  + previous.lines; 
+                previous = current;
             }
         }
     }
@@ -35,16 +36,18 @@ impl Container {
         self.items.push(Item::new_at_y(
             (self.current_index + 1).try_into().unwrap_or(1),
         ));
+        self.go(1);
         self.rearrange_items();
     }
     pub fn remove_item(&mut self) {
         if !self.items.is_empty() {
             self.items.remove(self.current_index.try_into().unwrap());
-            if self.current_index == self.length() {
-                self.current_index -= 1;
-            }
+            self.current_index = self.current_index.min(self.length()-1).max(0);
+        }else{
+            self.current_index = 0;
         }
-        self.rearrange_items();
+        
+         self.rearrange_items();
     }
     pub fn go(&mut self, i: isize) {
         self.current_index += i;
@@ -78,8 +81,9 @@ impl Container {
             write!(
                 stdout,
                 "{}",
-                cursor::Goto((self.get_current_item().content.len() + 1).try_into().unwrap(), self.get_current_item().position.1)
-                  ).unwrap();
+                cursor::Goto((self.get_current_item().cursor_position +1).try_into().unwrap_or_default(), self.get_current_item().position.1)
+            )
+            .unwrap();
         }
     }
 }
