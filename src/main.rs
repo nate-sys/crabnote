@@ -16,10 +16,12 @@ fn main() {
     .unwrap();
     for c in stdin.keys() {
         if item_list.inserting {
-            if c.unwrap() == Key::Esc {
+            if c.as_ref().unwrap() == &Key::Esc {
                 item_list.inserting = false
+            }else{
+                item_list.handle_insertion(c.unwrap());
             }
-        } else {
+        }else {
             match c.unwrap() {
                 Key::Char('q') => break,
                 Key::Char('i') => item_list.inserting = true,
@@ -29,6 +31,11 @@ fn main() {
                 Key::Char('k') => item_list.go(-1),
                 _ => {}
             }
+        }
+        if item_list.inserting{
+            write!(stdout, "{}", cursor::Show).unwrap();
+        }else{
+            write!(stdout, "{}", cursor::Hide).unwrap();
         }
         write!(stdout, "{}", termion::clear::All).unwrap();
         item_list.draw_to_buffer(&mut stdout);
