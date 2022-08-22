@@ -17,7 +17,12 @@ fn main() {
         if item_list.inserting {
             if c.as_ref().unwrap() == &Key::Esc {
                 item_list.inserting = false
-            }else{
+            }
+            else if c.as_ref().unwrap() == &Key::Char('\n'){
+                //todo
+                item_list.add_item();
+            }
+            else{
                 item_list.handle_insertion(c.unwrap());
             }
         }else {

@@ -1,5 +1,5 @@
 use crate::component::Component;
-use termion::{event::Key, color};
+use termion::{event::Key, color, style};
 #[allow(dead_code)]
 pub struct Item {
     component: Component,
@@ -33,7 +33,7 @@ impl Item {
             self.cursor_position += 1;
         }
     }
-    pub fn handle(&mut self, key: Key) {
+    pub fn handle(&mut self, key: Key) -> isize {
         match key{
             Key::Char(character) => {
                 self.content.insert(self.cursor_position, character);
@@ -41,6 +41,12 @@ impl Item {
             }
             Key::Left => self.go_left(),
             Key::Right => self.go_right(),
+            Key::Up => {
+               return -1; 
+            }
+            Key::Down => {
+                return 1;
+            }
             Key::Backspace => {
                 if self.cursor_position > 0 {
                     self.content.remove(self.cursor_position -1);
@@ -49,24 +55,26 @@ impl Item {
             }
             _ => {}
         }
+        return 0;
     }
+
     pub fn parse_md(&mut self) -> (String, String) {
         let parsed_text: String;
         let formated_text: String;
         if self.content.starts_with("# ") {
             parsed_text = self.content.replace("# ", "");
             self.adjustment = -1;
-            formated_text = format!("{}", color::Fg(color::Green));
+            formated_text = format!("{}{}{}", color::Fg(color::Green),style::Bold, style::Invert);
         }
         else if self.content.starts_with("## ") {
             parsed_text = self.content.replace("## ", "");
             self.adjustment = -2;
-            formated_text = format!("{}", color::Fg(color::Yellow));
+            formated_text = format!("{}{}", color::Fg(color::Green), style::Bold);
         }
         else if self.content.starts_with("### ") {
             parsed_text = self.content.replace("### ", "");
             self.adjustment = -3;
-            formated_text = format!("{}", color::Fg(color::Red));
+            formated_text = format!("{}", color::Fg(color::Green));
         }
         else if self.content.starts_with("- ") {
             parsed_text = self.content.replace("- ", "    • ");

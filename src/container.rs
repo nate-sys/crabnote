@@ -59,9 +59,11 @@ impl Container {
         self.items.get::<usize>(self.current_index.try_into().unwrap()).unwrap()
     }
     pub fn handle_insertion(&mut self, key: Key) {
-        if let Some(item) = self.items.get_mut::<usize>(self.current_index.try_into().unwrap()) {
-            item.handle(key);
+        let mut movement = 0;
+        if let Some(  item) = self.items.get_mut::<usize>(self.current_index.try_into().unwrap()) {
+            movement = item.handle(key);
         }
+            self.go(movement);
     }
     pub fn draw_to_buffer(&mut self, stdout: &mut Stdout) {
         for (index, i) in self.items.iter_mut().enumerate() {
@@ -73,12 +75,13 @@ impl Container {
             let c = i.parse_md();
             write!(
                 stdout,
-                "{position}{style}{text}",
+                "{position}{style}{text}{reset}",
                 position = cursor::Goto(i.position.0, i.position.1),
                 style= c.1,
                 text = c.0,
+                reset = style::Reset,
             )
-            .unwrap();
+                .unwrap();
         }
         if !self.items.is_empty(){
             write!(
