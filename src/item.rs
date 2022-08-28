@@ -15,10 +15,10 @@ impl Item {
     pub fn new(y: u16) -> Self {
         Item {
             component: Component::default(),
-            content: String::from("Hello"),
+            content: String::from(""),
             position: (1, y),
             lines: 1,
-            cursor_position: 5,
+            cursor_position: 0,
             adjustment: 1,
             adjusted_cursor_position: 0,
         }
@@ -62,8 +62,8 @@ impl Item {
         let parsed_text: String;
         let formated_text: String;
         if self.content.starts_with("# ") {
-            parsed_text = self.content.replace("# ", "");
-            self.adjustment = -1;
+            parsed_text = self.content.replace("# ", " ");
+            self.adjustment = 0;
             formated_text = format!("{}{}{}", color::Fg(color::Green),style::Bold, style::Invert);
         }
         else if self.content.starts_with("## ") {
@@ -80,7 +80,13 @@ impl Item {
             parsed_text = self.content.replace("- ", "    • ");
             self.adjustment = 5;
             formated_text = format!("{}", color::Fg(color::Reset));
-        }else{
+        }else if self.content.eq(""){
+            parsed_text = String::from("...");
+            self.adjustment = 1;
+
+            formated_text = format!("{}{}",color::Fg(color::LightBlack) ,style::Italic);
+        }
+        else {
             formated_text = format!("{}", color::Fg(color::Reset));
             parsed_text = self.content.clone();
             self.adjustment = 1;

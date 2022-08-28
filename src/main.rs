@@ -7,11 +7,14 @@ fn main() {
     let stdin = stdin();
     let mut stdout = AlternateScreen::from(stdout().into_raw_mode().unwrap());
     let mut item_list = container::Container::new();
+    item_list.add_item();
+    item_list.inserting = true;
     write!(
         stdout,
-        "{toAlt}{hideCursor}",
+        "{toAlt}{hideCursor}{gotop}",
         toAlt = ToAlternateScreen,
-        hideCursor = cursor::Hide
+        hideCursor = cursor::Hide,
+        gotop = cursor::Goto(1,1)
     ).unwrap();
     for c in stdin.keys() {
         if item_list.inserting {
@@ -21,6 +24,7 @@ fn main() {
             else if c.as_ref().unwrap() == &Key::Char('\n'){
                 //todo
                 item_list.add_item();
+                item_list.go(1);
             }
             else{
                 item_list.handle_insertion(c.unwrap());
@@ -37,7 +41,7 @@ fn main() {
             }
         }
         if item_list.inserting{
-            write!(stdout, "{}", cursor::Show).unwrap();
+            write!(stdout, "{}{}",cursor::Show, cursor::BlinkingBlock).unwrap();
         }else{
             write!(stdout, "{}", cursor::Hide).unwrap();
         }

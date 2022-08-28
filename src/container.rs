@@ -25,7 +25,7 @@ impl Container {
             first.position.1 = 1;
             let mut previous = first;
             while let Some(current) = iter.next(){
-                current.position.1 = previous.position.1  + previous.lines; 
+                current.position.1 = previous.position.1  + previous.lines + 1; 
                 previous = current;
             }
         }
@@ -63,7 +63,7 @@ impl Container {
         if let Some(  item) = self.items.get_mut::<usize>(self.current_index.try_into().unwrap()) {
             movement = item.handle(key);
         }
-            self.go(movement);
+        self.go(movement);
     }
     pub fn draw_to_buffer(&mut self, stdout: &mut Stdout) {
         for (index, i) in self.items.iter_mut().enumerate() {
