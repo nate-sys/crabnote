@@ -19,12 +19,17 @@ impl Container {
     pub fn length(&self) -> isize {
         self.items.len().try_into().unwrap_or_default()
     }
-    fn rearrange_items(&mut self) {
+    pub fn recalculate_all_lines(&mut self) {
+        for i in self.items.iter_mut() {
+            i.recalculate_lines();
+        }
+    }
+    pub fn rearrange_items(&mut self) {
         let mut iter = self.items.iter_mut();
         if let Some(first) = iter.next(){
             first.position.1 = 1;
             let mut previous = first;
-            while let Some(current) = iter.next(){
+            for current in iter{
                 current.position.1 = previous.position.1  + previous.lines + 1; 
                 previous = current;
             }
@@ -38,7 +43,6 @@ impl Container {
                 (self.current_index + 1).try_into().unwrap_or(1),
             ));
         }
-        //self.go(1);
         self.rearrange_items();
     }
     pub fn remove_item(&mut self) {
@@ -49,18 +53,20 @@ impl Container {
         self.rearrange_items();
     }
     pub fn go(&mut self, i: isize) {
+        self.recalculate_all_lines();
         self.current_index += i;
         self.current_index = self
             .current_index
             .clamp(0, (self.length() - 1).max(0))
             .max(0);
+        self.recalculate_all_lines();
     }
     fn get_current_item(&self) -> &Item{
         self.items.get::<usize>(self.current_index.try_into().unwrap()).unwrap()
     }
     pub fn handle_insertion(&mut self, key: Key) {
         let mut movement = 0;
-        if let Some(  item) = self.items.get_mut::<usize>(self.current_index.try_into().unwrap()) {
+        if let Some(item) = self.items.get_mut::<usize>(self.current_index.try_into().unwrap()) {
             movement = item.handle(key);
         }
         self.go(movement);

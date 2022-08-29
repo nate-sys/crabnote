@@ -3,9 +3,9 @@ mod container;
 mod item;
 use std::io::{stdin, stdout, Write};
 use termion::{cursor, event::Key, input::TermRead, raw::IntoRawMode, screen::*};
-fn main() {
+fn main() -> Result<(), &'static str> {
     let stdin = stdin();
-    let mut stdout = AlternateScreen::from(stdout().into_raw_mode().unwrap());
+    let mut stdout = AlternateScreen::from(stdout().into_raw_mode()?);
     let mut item_list = container::Container::new();
     item_list.add_item();
     item_list.inserting = true;
@@ -15,10 +15,10 @@ fn main() {
         toAlt = ToAlternateScreen,
         hideCursor = cursor::Hide,
         gotop = cursor::Goto(1,1)
-    ).unwrap();
+    )?;
     for c in stdin.keys() {
         if item_list.inserting {
-            if c.as_ref().unwrap() == &Key::Esc {
+            if c.as_ref()? == &Key::Esc {
                 item_list.inserting = false
             }
             else if c.as_ref().unwrap() == &Key::Char('\n'){
@@ -40,6 +40,8 @@ fn main() {
                 _ => {}
             }
         }
+        item_list.recalculate_all_lines();
+        item_list.rearrange_items();
         if item_list.inserting{
             write!(stdout, "{}{}",cursor::Show, cursor::BlinkingBlock).unwrap();
         }else{

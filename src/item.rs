@@ -55,9 +55,12 @@ impl Item {
             }
             _ => {}
         }
-        return 0;
+        self.recalculate_lines();
+        0
     }
-
+    pub fn recalculate_lines(&mut self){
+        self.lines = 1+self.content.len() as u16 / termion::terminal_size().unwrap().0;
+    }
     pub fn parse_md(&mut self) -> (String, String) {
         let parsed_text: String;
         let formated_text: String;
@@ -93,6 +96,6 @@ impl Item {
         }
 
         self.adjusted_cursor_position = (self.cursor_position as i32 + self.adjustment).try_into().unwrap_or(0);
-        return (parsed_text, formated_text)
+        (parsed_text, formated_text)
     }
 }
